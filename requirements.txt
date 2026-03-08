@@ -1,0 +1,43 @@
+# Web Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+gradio>=4.36.0
+
+# ASR - 语音识别
+faster-whisper>=1.0.0
+
+# LLM - 本地大模型
+openai>=1.10.0
+
+# TTS - 语音合成
+edge-tts>=6.1.0
+
+# 深度学习框架
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+
+# 图像/视频处理
+numpy>=1.24.0
+opencv-python>=4.9.0
+opencv-contrib-python>=4.9.0
+pillow>=10.2.0
+scipy>=1.12.0
+scikit-image>=0.22.0
+
+# 实时通信
+websockets>=12.0
+
+# 音频处理
+soundfile>=0.12.0
+librosa>=0.10.0
+
+# VAD - 语音活动检测
+webrtcvad>=2.0.0
+
+# 工具
+python-multipart>=0.0.6
+aiofiles>=23.2.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+tqdm>=4.66.0
