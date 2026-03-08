@@ -62,6 +62,19 @@ def initialize_models():
 app = FastAPI(title="数字人 API")
 
 
+@app.get("/health")
+async def health_check():
+    """健康检查接口"""
+    from models.llm.vllm_llm import check_vllm_health
+    
+    vllm_status = check_vllm_health()
+    
+    return {
+        "status": "ok" if vllm_status.get("connected") else "error",
+        "vllm": vllm_status
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """返回前端页面"""

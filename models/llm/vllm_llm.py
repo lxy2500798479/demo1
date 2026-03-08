@@ -6,8 +6,68 @@ import asyncio
 import time
 from typing import Optional, AsyncGenerator, List, Dict
 import openai
+import requests
+import urllib3
+# 禁用 SSL 警告（如果需要）
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from config import VLLM_HOST, VLLM_PORT, VLLM_MODEL, VLLM_API_KEY, VLLM_TIMEOUT
+
+
+def check_vllm_health() -> dict:
+    """检查 vLLM 服务健康状态"""
+    try:
+        base_url = f"http://{VLLM_HOST}:{VLLM_PORT}"
+        
+        print(f"[VLLM] 健康检查 - 测试连接: {base_url}")
+        
+        # 检查 /v1/models
+        models_response = requests.get(f"{base_url}/v1/models", timeout=5)
+        models_status = models_response.status_code
+        models_data = models_response.json() if models_response.status_code == 200 else None
+        
+        # 检查 /health
+        health_response = requests.get(f"{base_url}/health", timeout=5)
+        health_status = health_response.status_code
+        
+        # 检查 /ping
+        ping_response = requests.get(f"{base_url}/ping", timeout=5)
+        ping_status = ping_response.status_code
+        
+        # 测试 chat 接口
+        test_chat_response = None
+        try:
+            chat_response = requests.post(
+                f"{base_url}/v1/chat/completions",
+                json={
+                    "model": VLLM_MODEL,
+                    "messages": [{"role": "user", "content": "你好"}],
+                    "max_tokens": 50
+                },
+                timeout=30
+            )
+            test_chat_status = chat_response.status_code
+            test_chat_response = chat_response.text[:200] if chat_response.status_code != 200 else None
+        except Exception as e:
+            test_chat_status = str(e)
+        
+        return {
+            "connected": True,
+            "v1_models_status": models_status,
+            "health_status": health_status,
+            "ping_status": ping_status,
+            "test_chat_status": test_chat_status,
+            "test_chat_response": test_chat_response,
+            "models_data": models_data,
+            "base_url": base_url
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "connected": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 
 class VLLMClient:
