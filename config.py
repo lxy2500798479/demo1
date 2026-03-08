@@ -24,7 +24,7 @@ WHISPER_DEVICE = "cuda"
 WHISPER_COMPUTE_TYPE = "float16"
 
 # ============== LLM 配置 (vLLM) ==============
-VLLM_HOST = "127.0.0.1"  # 客户端连接地址，用 127.0.0.1 或服务器实际 IP
+VLLM_HOST = "10.12.1.103"  # 客户端连接地址，用 127.0.0.1 或服务器实际 IP
 VLLM_PORT = 8000
 VLLM_MODEL = "Qwen/Qwen2.5-3B-Instruct"  # HuggingFace 模型名
 VLLM_API_KEY = "EMPTY"
