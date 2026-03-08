@@ -1,29 +1,32 @@
 """
 LLM 对话模块
-使用 Ollama 调用本地 Qwen2.5-3B 模型
+使用 vLLM 调用本地 Qwen2.5-3B 模型
 """
 import asyncio
 from typing import Optional, AsyncGenerator, List, Dict
 import openai
 
-from config import OLLAMA_BASE_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT
+from config import VLLM_HOST, VLLM_PORT, VLLM_MODEL, VLLM_API_KEY, VLLM_TIMEOUT
 
 
-class OllamaLLM:
-    """Ollama LLM 客户端"""
+class VLLMClient:
+    """vLLM 客户端"""
 
     def __init__(
         self,
-        base_url: str = OLLAMA_BASE_URL,
-        model: str = OLLAMA_MODEL,
-        timeout: int = OLLAMA_TIMEOUT,
+        host: str = VLLM_HOST,
+        port: int = VLLM_PORT,
+        model: str = VLLM_MODEL,
+        api_key: str = VLLM_API_KEY,
+        timeout: int = VLLM_TIMEOUT,
     ):
-        self.base_url = base_url
+        self.base_url = f"http://{host}:{port}/v1"
         self.model = model
+        self.api_key = api_key
         self.timeout = timeout
         self.client = openai.OpenAI(
-            base_url=f"{base_url}/v1",
-            api_key="ollama",  # Ollama 不需要真正的 key
+            base_url=self.base_url,
+            api_key=api_key,
             timeout=timeout
         )
         self.conversation_history: List[Dict[str, str]] = []
@@ -46,19 +49,7 @@ class OllamaLLM:
         temperature: float = 0.7,
         stream: bool = False,
     ) -> str:
-        """
-        发送聊天请求
-
-        Args:
-            message: 用户消息
-            system_prompt: 系统提示词
-            temperature: 温度参数
-            stream: 是否流式输出
-
-        Returns:
-            模型回复
-        """
-        # 构建消息列表
+        """发送聊天请求"""
         messages = []
         if system_prompt:
             messages.append({
@@ -73,7 +64,6 @@ class OllamaLLM:
 
         try:
             if stream:
-                # 流式输出
                 response = await asyncio.to_thread(
                     self.client.chat.completions.create,
                     model=self.model,
@@ -87,10 +77,8 @@ class OllamaLLM:
                     if chunk.choices[0].delta.content:
                         content = chunk.choices[0].delta.content
                         full_response += content
-                        # 可以在这里 yield 给前端
                 return full_response
             else:
-                # 非流式输出
                 response = await asyncio.to_thread(
                     self.client.chat.completions.create,
                     model=self.model,
@@ -110,17 +98,7 @@ class OllamaLLM:
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
     ) -> AsyncGenerator[str, None]:
-        """
-        流式聊天
-
-        Args:
-            message: 用户消息
-            system_prompt: 系统提示词
-            temperature: 温度参数
-
-        Yields:
-            模型回复的片段
-        """
+        """流式聊天"""
         messages = []
         if system_prompt:
             messages.append({
@@ -157,12 +135,12 @@ class OllamaLLM:
 
 
 # 全局单例
-_llm_instance: Optional[OllamaLLM] = None
+_llm_instance: Optional[VLLMClient] = None
 
 
-def get_llm() -> OllamaLLM:
+def get_llm() -> VLLMClient:
     """获取 LLM 实例"""
     global _llm_instance
     if _llm_instance is None:
-        _llm_instance = OllamaLLM()
+        _llm_instance = VLLMClient()
     return _llm_instance

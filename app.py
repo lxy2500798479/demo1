@@ -21,7 +21,7 @@ from PIL import Image
 
 from config import HOST, PORT, DEBUG, PROJECT_ROOT, ASSETS_DIR
 from models.asr.whisper_asr import WhisperASR, get_asr
-from models.llm.ollama_llm import OllamaLLM, get_llm
+from models.llm.vllm_llm import VLLMClient, get_llm
 from models.tts.edge_tts import EdgeTTS, get_tts
 from models.talk.musetalk_driver import get_simple_driver, SimpleAvatarDriver
 
@@ -30,7 +30,7 @@ from models.talk.musetalk_driver import get_simple_driver, SimpleAvatarDriver
 avatar_driver: Optional[SimpleAvatarDriver] = None
 current_avatar_path: Optional[str] = None
 asr_model: Optional[WhisperASR] = None
-llm_model: Optional[OllamaLLM] = None
+llm_model: Optional[VLLMClient] = None
 tts_model: Optional[EdgeTTS] = None
 
 

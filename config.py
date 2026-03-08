@@ -23,10 +23,12 @@ WHISPER_MODEL = "tiny"
 WHISPER_DEVICE = "cuda"
 WHISPER_COMPUTE_TYPE = "float16"
 
-# ============== LLM 配置 ==============
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen2.5:3b"
-OLLAMA_TIMEOUT = 120
+# ============== LLM 配置 (vLLM) ==============
+VLLM_HOST = "0.0.0.0"
+VLLM_PORT = 8000
+VLLM_MODEL = "qwen2.5-3b-instruct"  # HuggingFace 模型名
+VLLM_API_KEY = "EMPTY"
+VLLM_TIMEOUT = 120
 
 # ============== TTS 配置 ==============
 EDGE_TTS_VOICE = "zh-CN-XiaoxiaoNeural"
