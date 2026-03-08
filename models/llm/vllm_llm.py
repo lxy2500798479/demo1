@@ -3,6 +3,7 @@ LLM 对话模块
 使用 vLLM 调用本地 Qwen2.5-3B 模型
 """
 import asyncio
+import time
 from typing import Optional, AsyncGenerator, List, Dict
 import openai
 
@@ -30,6 +31,13 @@ class VLLMClient:
             timeout=timeout
         )
         self.conversation_history: List[Dict[str, str]] = []
+        
+        # 打印初始化信息
+        print(f"[VLLM] 初始化 vLLM 客户端")
+        print(f"[VLLM] base_url: {self.base_url}")
+        print(f"[VLLM] model: {self.model}")
+        print(f"[VLLM] api_key: {self.api_key}")
+        print(f"[VLLM] timeout: {self.timeout}")
 
     def add_message(self, role: str, content: str):
         """添加对话历史"""
@@ -62,6 +70,15 @@ class VLLMClient:
             "content": message
         })
 
+        # 打印详细的请求信息
+        print(f"\n{'='*60}")
+        print(f"[VLLM] 请求开始")
+        print(f"[VLLM] URL: {self.base_url}/chat/completions")
+        print(f"[VLLM] Model: {self.model}")
+        print(f"[VLLM] Messages: {messages}")
+        print(f"[VLLM] Temperature: {temperature}")
+        print(f"{'='*60}\n")
+
         try:
             if stream:
                 response = await asyncio.to_thread(
@@ -79,6 +96,9 @@ class VLLMClient:
                         full_response += content
                 return full_response
             else:
+                start_time = time.time()
+                print(f"[VLLM] 正在调用 vLLM 服务...")
+                
                 response = await asyncio.to_thread(
                     self.client.chat.completions.create,
                     model=self.model,
@@ -86,10 +106,32 @@ class VLLMClient:
                     temperature=temperature,
                     stream=False
                 )
-                return response.choices[0].message.content
+                
+                elapsed_time = time.time() - start_time
+                print(f"[VLLM] vLLM 响应耗时: {elapsed_time:.2f}秒")
+                print(f"[VLLM] 响应内容: {response}")
+                print(f"[VLLM] 响应 choices: {response.choices}")
+                
+                result = response.choices[0].message.content
+                print(f"[VLLM] 返回结果: {result[:200]}...")
+                print(f"{'='*60}\n")
+                
+                return result
 
+        except openai.APIConnectionError as e:
+            print(f"[VLLM] 连接错误: {e}")
+            print(f"[VLLM] 请确保 vLLM 服务已启动在: http://{VLLM_HOST}:{VLLM_PORT}")
+            print(f"[VLLM] 启动 vLLM 服务的命令示例:")
+            print(f"[VLLM]   vllm serve {VLLM_MODEL} --host {VLLM_HOST} --port {VLLM_PORT} --api-key {VLLM_API_KEY}")
+            return f"抱歉，我遇到了错误: 无法连接到 vLLM 服务 - {str(e)}"
+        except openai.APIStatusError as e:
+            print(f"[VLLM] API 状态错误: {e.status_code} - {e.response}")
+            print(f"[VLLM] 响应内容: {e.response.text if e.response else 'N/A'}")
+            return f"抱歉，我遇到了错误: Error code: {e.status_code}"
         except Exception as e:
-            print(f"LLM 调用错误: {e}")
+            print(f"[VLLM] 未知错误: {type(e).__name__}: {e}")
+            import traceback
+            print(f"[VLLM] 详细堆栈: {traceback.format_exc()}")
             return f"抱歉，我遇到了错误: {str(e)}"
 
     async def chat_stream(

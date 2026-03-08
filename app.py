@@ -74,6 +74,11 @@ async def root():
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """处理对话请求"""
+    print(f"\n{'='*60}")
+    print(f"[API] 收到聊天请求")
+    print(f"[API] 输入文本: {request.text}")
+    print(f"{'='*60}")
+    
     if not request.text:
         raise HTTPException(status_code=400, text="输入不能为空")
 
@@ -81,28 +86,41 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, text="LLM 模型未初始化")
 
     try:
+        print(f"[API] 步骤1: 调用 LLM 获取回复...")
+        
         # 1. 调用 LLM 获取回复
         response_text = await llm_model.chat(request.text)
+        
+        print(f"[API] LLM 返回: {response_text[:200] if response_text else 'None'}...")
 
         # 2. 调用 TTS 合成语音
         audio_path = None
         audio_filename = None
         if tts_model:
+            print(f"[API] 步骤2: 调用 TTS 合成语音...")
             # 生成唯一文件名
             import uuid
             audio_filename = f"{uuid.uuid4()}.mp3"
             audio_path = str(TEMP_DIR / audio_filename)
             await tts_model.synthesize(response_text, output_path=audio_path)
+            print(f"[API] TTS 生成的音频文件: {audio_filename}")
 
         # 3. 返回结果
-        return ChatResponse(
+        result = ChatResponse(
             text=request.text,
             response=response_text,
             audio_file=audio_filename
         )
+        
+        print(f"[API] 请求处理完成")
+        print(f"{'='*60}\n")
+        
+        return result
 
     except Exception as e:
-        print(f"处理错误: {e}")
+        print(f"[API] 处理错误: {type(e).__name__}: {e}")
+        import traceback
+        print(f"[API] 详细堆栈: {traceback.format_exc()}")
         raise HTTPException(status_code=500, text=str(e))
 
 
