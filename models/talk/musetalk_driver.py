@@ -5,7 +5,7 @@ MuseTalk 口型驱动模块
 import os
 import asyncio
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, AsyncGenerator
 import numpy as np
 import torch
 import cv2
