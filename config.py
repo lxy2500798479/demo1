@@ -26,7 +26,7 @@ WHISPER_COMPUTE_TYPE = "float16"
 # ============== LLM 配置 (vLLM) ==============
 VLLM_HOST = "0.0.0.0"
 VLLM_PORT = 8000
-VLLM_MODEL = "qwen2.5-3b-instruct"  # HuggingFace 模型名
+VLLM_MODEL = "Qwen/Qwen2.5-3B-Instruct"  # HuggingFace 模型名
 VLLM_API_KEY = "EMPTY"
 VLLM_TIMEOUT = 120
 
